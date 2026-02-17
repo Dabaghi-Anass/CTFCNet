@@ -11,6 +11,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 from models.yynet_efficient_swin import CTCFNet as net
 from torchvision import transforms
 from PIL import Image
+import time
 
 
 class PredOption():
@@ -75,13 +76,17 @@ def main():
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
+    
 
     model = net(pretrained=True)
     model.load_state_dict(torch.load(opt.chkpt_path, map_location=device), strict=False)
     model.to(device)
     model.eval()
 
+    start_time = time.time()
     predict_single(model, opt.image_path, opt.pred_dir, device)
+    end_time = time.time()
+    print(f"Inference time: {end_time - start_time:.2f} seconds")
 
 
 if __name__ == '__main__':
