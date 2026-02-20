@@ -97,7 +97,7 @@ def train(train_loader, model, optimizer, epoch, best_iou, best_f1):
 
 
         # ---- train visualization ----
-        if i % 20 == 0 or i == total_step:
+        if i % 100 == 0 or i == total_step:
             print('Epoch[{:03d}/{:03d}], Step[{:04d}/{:04d}],'
                   '[loss_category: {:.4f}, loss_mask: {:0.4f}, loss_bound: {:0.4f}]'.
                   format(epoch, opt.epoch, i, total_step,
