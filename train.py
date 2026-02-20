@@ -145,7 +145,7 @@ if __name__ == "__main__":
 
     # Model
     model = CTCFNet(pretrained=True).cuda(rank)
-    model = DDP(model, device_ids=[rank])
+    model = DDP(model, device_ids=[rank],find_unused_parameters=True)
 
     optimizer = torch.optim.AdamW(model.parameters(), opt.lr)
     scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=opt.epoch)
