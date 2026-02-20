@@ -1,0 +1,1 @@
+python3 predict_single.py --chkpt_path pretrained/CTCFNet.pth --image_path test_images/img4.png --pred_dir predictions
