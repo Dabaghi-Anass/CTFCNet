@@ -226,7 +226,7 @@ if __name__ == '__main__':
         torch.cuda.manual_seed(1234)
 
     # ---- build models ----
-    model = CLCFormer(pretrained=True).to(device)
+    model = CTCFNet(pretrained=True).to(device)
 
     # optimizer = Lookahead(base_optimizer)
     params = model.parameters()
