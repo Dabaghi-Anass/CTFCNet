@@ -50,12 +50,34 @@ def accuracy(pred, label):
     return float(acc_sum) / (valid_sum + 1e-10)
 
 # -----------------------------
+# mIoU (mean Intersection over Union)
+# -----------------------------
+def miou(pred, label, num_classes=7):
+    """
+    Calculate mean Intersection over Union
+    pred: predicted class map (H, W)
+    label: ground truth class map (H, W)
+    num_classes: number of classes
+    """
+    iou_list = []
+    for i in range(num_classes):
+        intersection = ((pred == i) & (label == i)).sum()
+        union = ((pred == i) | (label == i)).sum()
+        if union == 0:
+            iou = 0
+        else:
+            iou = intersection / union
+        iou_list.append(iou)
+    return np.mean(iou_list)
+
+# -----------------------------
 # Train
 # -----------------------------
 def train(train_loader, model, optimizer, epoch, opt, writer, rank):
     model.train()
     loss_record = []
     acc_bank = []
+    miou_bank = []
 
     for i, (_, inputs, pack, mask, bound) in enumerate(tqdm(train_loader, disable=rank!=0)):
 
@@ -88,13 +110,16 @@ def train(train_loader, model, optimizer, epoch, opt, writer, rank):
         pred = torch.argmax(res, dim=1).cpu().numpy()
         gt = gts.cpu().numpy()
         acc_bank.append(accuracy(pred, gt))
+        miou_bank.append(miou(pred, gt))
 
     mean_loss = np.mean(loss_record)
     mean_acc = np.mean(acc_bank)
+    mean_miou = np.mean(miou_bank)
 
     if rank == 0:
         writer.add_scalar("train_loss", mean_loss, epoch)
         writer.add_scalar("train_acc", mean_acc, epoch)
+        writer.add_scalar("train_miou", mean_miou, epoch)
 
     return mean_loss
 
@@ -105,6 +130,8 @@ def train(train_loader, model, optimizer, epoch, opt, writer, rank):
 def validate(model, val_loader, rank):
     model.eval()
     loss_bank = []
+    acc_bank = []
+    miou_bank = []
 
     for _, inputs, pack, mask, bound in val_loader:
 
@@ -114,8 +141,14 @@ def validate(model, val_loader, rank):
         res, _, _, _, _ = model(images)
         loss = structure_loss(res, gts)
         loss_bank.append(loss.item())
+        
+        res_sigmoid = res.sigmoid()
+        pred = torch.argmax(res_sigmoid, dim=1).cpu().numpy()
+        gt = gts.cpu().numpy()
+        acc_bank.append(accuracy(pred, gt))
+        miou_bank.append(miou(pred, gt))
 
-    return np.mean(loss_bank)
+    return np.mean(loss_bank), np.mean(acc_bank), np.mean(miou_bank)
 
 # -----------------------------
 # Main
@@ -184,12 +217,16 @@ if __name__ == "__main__":
         train_sampler.set_epoch(epoch)
 
         train_loss = train(train_loader, model, optimizer, epoch, opt, writer, rank)
-        val_loss = validate(model, val_loader, rank)
+        val_loss, val_acc, val_miou = validate(model, val_loader, rank)
 
         scheduler.step()
 
         if rank == 0:
-            print(f"Epoch {epoch}: Train Loss {train_loss:.4f}, Val Loss {val_loss:.4f}")
+            writer.add_scalar("val_loss", val_loss, epoch)
+            writer.add_scalar("val_acc", val_acc, epoch)
+            writer.add_scalar("val_miou", val_miou, epoch)
+            
+            print(f"Epoch {epoch}: Train Loss {train_loss:.4f}, Val Loss {val_loss:.4f}, Val Acc {val_acc:.4f}, Val mIoU {val_miou:.4f}")
 
             if val_loss < best_loss:
                 best_loss = val_loss
