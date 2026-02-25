@@ -164,6 +164,7 @@ if __name__ == "__main__":
     parser.add_argument('--data_name', type=str, default="dataset")
     parser.add_argument('--logs_path', type=str, default='./logs')
     parser.add_argument('--train_save', type=str, default='./checkpoints')
+    parser.add_argument('--checkpoint', type=str, default=None, help='Path to checkpoint to resume from')
     opt = parser.parse_args()
 
     # Setup DDP
@@ -178,6 +179,14 @@ if __name__ == "__main__":
 
     # Model
     model = CTCFNet(pretrained=True).cuda(rank)
+    
+    # Load checkpoint if provided
+    if opt.checkpoint is not None and os.path.exists(opt.checkpoint):
+        if rank == 0:
+            print(f"Loading checkpoint from {opt.checkpoint}")
+        checkpoint = torch.load(opt.checkpoint, map_location=f'cuda:{rank}')
+        model.load_state_dict(checkpoint)
+    
     model = DDP(model, device_ids=[rank],find_unused_parameters=True)
 
     optimizer = torch.optim.AdamW(model.parameters(), opt.lr)
