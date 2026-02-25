@@ -185,7 +185,17 @@ if __name__ == "__main__":
         if rank == 0:
             print(f"Loading checkpoint from {opt.checkpoint}")
         checkpoint = torch.load(opt.checkpoint, map_location=f'cuda:{rank}')
-        model.load_state_dict(checkpoint)
+        
+        # Filter out keys that don't belong to the model (like total_ops, total_params)
+        model_keys = set(model.state_dict().keys())
+        checkpoint_filtered = {k: v for k, v in checkpoint.items() if k in model_keys}
+        
+        if rank == 0:
+            skipped_keys = set(checkpoint.keys()) - set(checkpoint_filtered.keys())
+            if skipped_keys:
+                print(f"Skipped {len(skipped_keys)} extra keys from checkpoint (e.g., total_ops, total_params)")
+        
+        model.load_state_dict(checkpoint_filtered, strict=False)
     
     model = DDP(model, device_ids=[rank],find_unused_parameters=True)
 
