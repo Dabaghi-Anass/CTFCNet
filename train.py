@@ -191,6 +191,7 @@ if __name__ == "__main__":
         checkpoint_filtered = {k: v for k, v in checkpoint.items() if k in model_keys}
         
         if rank == 0:
+            print(f"Loaded {len(checkpoint_filtered)} keys from checkpoint")
             skipped_keys = set(checkpoint.keys()) - set(checkpoint_filtered.keys())
             if skipped_keys:
                 print(f"Skipped {len(skipped_keys)} extra keys from checkpoint (e.g., total_ops, total_params)")
