@@ -20,7 +20,7 @@ STD_A = np.array([46.32426, 44.79888, 44.923523])
 # MEAN_A = [75.4391, 81.203964, 91.874855]
 # STD_A = [48.639874, 49.273838, 47.913185]
 
-root = '/kaggle/input/datasets/anassdabaghi/ubt-tbt-for-rs-buildings-segmentation/UBTdataset'
+root = '/kaggle/input/datasets/anassdabaghi/casablanca-dataset/dataset'
 
 
 colormap2label = np.zeros(256 ** 3)
