@@ -181,7 +181,7 @@ if __name__ == "__main__":
 
     # Model
     model = CTCFNet(pretrained=opt.pretrained).cuda(rank)
-    
+    print("Model initialized with pretrained weights" if opt.pretrained else "Model initialized without pretrained weights")
     # Load checkpoint if provided
     if opt.checkpoint is not None and os.path.exists(opt.checkpoint):
         if rank == 0:
