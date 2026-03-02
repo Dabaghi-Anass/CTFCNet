@@ -164,6 +164,8 @@ if __name__ == "__main__":
     parser.add_argument('--data_name', type=str, default="dataset")
     parser.add_argument('--logs_path', type=str, default='./logs')
     parser.add_argument('--train_save', type=str, default='./checkpoints')
+    #pretrained arg
+    parser.add_argument('--pretrained', action='store_true', help='Use pretrained model')
     parser.add_argument('--checkpoint', type=str, default=None, help='Path to checkpoint to resume from')
     opt = parser.parse_args()
 
@@ -178,7 +180,7 @@ if __name__ == "__main__":
     torch.cuda.manual_seed(1234)
 
     # Model
-    model = CTCFNet(pretrained=True).cuda(rank)
+    model = CTCFNet(pretrained=opt.pretrained).cuda(rank)
     
     # Load checkpoint if provided
     if opt.checkpoint is not None and os.path.exists(opt.checkpoint):
