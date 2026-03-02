@@ -10,7 +10,6 @@ COLOR_MAP = {
     (255, 255, 0):  "High-density residential buildings",  # yellow
     (0, 0, 255):    "Apartment-type buildings",            # blue
     (0, 255, 0):    "Factory buildings",                   # green
-    (0, 255, 255):  "Detached buildings",                  # cyan
     (255, 0, 0):    "Complex buildings",                   # red
 }
 
@@ -25,7 +24,11 @@ def overlay_mask(image_path, mask_path, output_path):
     # Read images
     image = cv2.imread(image_path)
     mask  = cv2.imread(mask_path)
-
+    # resize image to mask size if needed
+    if image.shape[:2] != mask.shape[:2]:
+        print("Resizing image to match mask size.")
+        image = cv2.resize(image, (mask.shape[1], mask.shape[0]))
+    print(f"Image shape: {image.shape}, Mask shape: {mask.shape}")
     if image is None or mask is None:
         raise ValueError("Image or mask not found.")
 
@@ -69,7 +72,7 @@ def overlay_mask(image_path, mask_path, output_path):
     print(f"Saved to {output_path}")
 
 
-image_path = "pretrained/UBTdataset/test/img1/1_754.png"
-mask_path  = "predictions/1_754.png"
+image_path = "test.png"
+mask_path  = "test_prediction.png"
 
 overlay_mask(image_path, mask_path, "overlay_result.png")
